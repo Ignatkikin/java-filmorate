@@ -27,13 +27,14 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        userValidator(user);
+        validateUser(user);
         user.setId(getNextUserId());
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+            log.info("Добавление. Пустое имя пользователя, использован Логин {}", user.getLogin());
         }
         users.put(user.getId(), user);
-        log.info("Пользователь успешно добавлен");
+        log.info("Пользователь {}  c id {} успешно добавлен", user.getLogin(), user.getId());
         return user;
     }
 
@@ -44,23 +45,24 @@ public class UserController {
         }
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
-            userValidator(newUser);
+            validateUser(newUser);
             oldUser.setEmail(newUser.getEmail());
             oldUser.setLogin(newUser.getLogin());
             if (newUser.getName() == null || newUser.getName().isBlank()) {
                 oldUser.setName(newUser.getLogin());
+                log.info("Обновление. Пустое имя пользователя, использован Логин {}", newUser.getLogin());
             } else {
                 oldUser.setName(newUser.getName());
             }
             oldUser.setBirthday(newUser.getBirthday());
-            log.info("Пользователь успешно обновлен");
+            log.info("Пользователь {} c id {} успешно обновлен", oldUser.getLogin(), oldUser.getId());
             return oldUser;
         }
-        log.error("пользователь с id " + newUser.getId() + " не найден");
+        log.error("пользователь с id {} не найден", newUser.getId());
         throw new ValidationException("пользователь с id " + newUser.getId() + " не найден");
     }
 
-    private void userValidator(@Valid @RequestBody User user) {
+    private void validateUser(@Valid @RequestBody User user) {
         if (user.getEmail() == null || !user.getEmail().contains("@")) {
             log.error("Email не должен быть пустым и должен содержать символ @");
             throw new ValidationException("Email не должен быть пустым и должен содержать символ @");
