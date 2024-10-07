@@ -17,7 +17,6 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
     private static final LocalDate MIN_RELEASE_DATA = LocalDate.of(1895, 12, 28);
-    private static final int MAX_DESCRIPTION_SIZE = 200;
     private final Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
@@ -56,22 +55,9 @@ public class FilmController {
     }
 
     private void validateFilm(@Valid @RequestBody Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.error("Названия не может быть пустым");
-            throw new ValidationException("Названия не может быть пустым");
-        }
-        if (film.getDescription() == null || film.getDescription().isBlank() ||
-                film.getDescription().length() > MAX_DESCRIPTION_SIZE) {
-            log.error("Количество символов больше {} или пустое", MAX_DESCRIPTION_SIZE);
-            throw new ValidationException("Количество символом привышает " + MAX_DESCRIPTION_SIZE + " или пустое");
-        }
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE_DATA)) {
             log.error("Дата релиза не может быть раньше {} или пустой", MIN_RELEASE_DATA);
             throw new ValidationException("Дата релиза не может быть раньше " + MIN_RELEASE_DATA + " или пустой");
-        }
-        if (film.getDuration() == null || film.getDuration() < 0) {
-            log.error("Продолжительность фильма не может быть отрицательной или пустой");
-            throw new ValidationException("Продолжительность фильма не может быть отрицательной или пустой");
         }
     }
 

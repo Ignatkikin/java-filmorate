@@ -73,32 +73,6 @@ class FilmControllerTest {
     }
 
     @Test
-    void testFailCreateFilmWithEmptyName() {
-        Film film = Film.builder()
-                .description("Первая часть")
-                .releaseDate(LocalDate.of(1999, 3, 31))
-                .duration(136)
-                .build();
-
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertTrue(exception.getMessage().contains("Названия не может быть пустым"));
-    }
-
-    @Test
-    void testFailCreateFilmWithDescriptionMore200Char() {
-        Film film = Film.builder()
-                .name("Матрица")
-                .description("BoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPa" +
-                        "BoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoBPa" +
-                        "BoMBabaMaMabaBaMoBPaBoMBabaMaMabaBaMoB201")
-                .releaseDate(LocalDate.of(1999, 3, 31))
-                .duration(136)
-                .build();
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertTrue(exception.getMessage().contains("Количество символом привышает 200 или пустое"));
-    }
-
-    @Test
     void testFailCreateFilmWithDateBefore1895() {
         Film film = Film.builder()
                 .name("Матрица")
@@ -108,18 +82,6 @@ class FilmControllerTest {
                 .build();
         Exception exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
         assertTrue(exception.getMessage().contains("Дата релиза не может быть раньше 1895-12-28 или пустой"));
-    }
-
-    @Test
-    void testFailCreateFilmWithNegativeDuration() {
-        Film film = Film.builder()
-                .name("Матрица")
-                .description("Первая часть")
-                .releaseDate(LocalDate.of(1999, 3, 31))
-                .duration(-30)
-                .build();
-        Exception exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertTrue(exception.getMessage().contains("Продолжительность фильма не может быть отрицательной или пустой"));
     }
 
     @Test

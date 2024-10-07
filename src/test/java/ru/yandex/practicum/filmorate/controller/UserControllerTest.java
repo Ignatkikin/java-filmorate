@@ -81,39 +81,4 @@ class UserControllerTest {
         List<User> users = userController.getUsers();
         assertEquals("IgnatKikin", users.get(0).getName());
     }
-
-    @Test
-    void testFailCreateUserWithEmptyLogin() {
-        User user = User.builder()
-                .email("IgnatKikin@yandex.ru")
-                .name("Ignat")
-                .birthday(LocalDate.of(1995, 11, 22))
-                .build();
-
-        Exception exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertTrue(exception.getMessage().contains("Логин не может быть пустым и содержать пробелы"));
-    }
-
-    @Test
-    void testFailCreateUserWithBirthdayInFuture() {
-        User user = User.builder()
-                .email("IgnatKikin@yandex.ru")
-                .login("IgnatKikin")
-                .name("Ignat")
-                .birthday(LocalDate.of(2100, 11, 22))
-                .build();
-        Exception exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertTrue(exception.getMessage().contains("Дата рождения не может быть в будущем"));
-    }
-
-    @Test
-    void testFailCreateUserWithIncorrectEmail() {
-        User user = User.builder()
-                .login("IgnatKikin")
-                .name("Ignat")
-                .birthday(LocalDate.of(1995, 11, 22))
-                .build();
-        Exception exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertTrue(exception.getMessage().contains("Email не должен быть пустым и должен содержать символ @"));
-    }
 }

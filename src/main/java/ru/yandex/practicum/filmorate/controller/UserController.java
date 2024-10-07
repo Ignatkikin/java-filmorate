@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +26,6 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        validateUser(user);
         user.setId(getNextUserId());
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -45,7 +43,6 @@ public class UserController {
         }
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
-            validateUser(newUser);
             oldUser.setEmail(newUser.getEmail());
             oldUser.setLogin(newUser.getLogin());
             if (newUser.getName() == null || newUser.getName().isBlank()) {
@@ -60,22 +57,6 @@ public class UserController {
         }
         log.error("пользователь с id {} не найден", newUser.getId());
         throw new ValidationException("пользователь с id " + newUser.getId() + " не найден");
-    }
-
-    private void validateUser(@Valid @RequestBody User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.error("Email не должен быть пустым и должен содержать символ @");
-            throw new ValidationException("Email не должен быть пустым и должен содержать символ @");
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.error("Логин не может быть пустым и содержать пробелы");
-            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.error("Дата рождения не может быть в будущем");
-            throw new ValidationException("Дата рождения не может быть в будущем");
-        }
-
     }
 
     private long getNextUserId() {
