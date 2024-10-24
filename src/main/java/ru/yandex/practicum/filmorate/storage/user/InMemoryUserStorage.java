@@ -3,10 +3,10 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -22,10 +22,6 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User createUser(User user) {
         user.setId(getNextUserId());
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Добавление. Пустое имя пользователя, использован Логин {}", user.getLogin());
-        }
         user.setFriends(new HashSet<>());
         users.put(user.getId(), user);
         log.info("Пользователь {}  c id {} успешно добавлен", user.getLogin(), user.getId());
@@ -34,19 +30,11 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User newUser) {
-        if (newUser.getId() == null) {
-            throw new ValidationException("Id должен быть указан");
-        }
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
             oldUser.setEmail(newUser.getEmail());
             oldUser.setLogin(newUser.getLogin());
-            if (newUser.getName() == null || newUser.getName().isBlank()) {
-                oldUser.setName(newUser.getLogin());
-                log.info("Обновление. Пустое имя пользователя, использован Логин {}", newUser.getLogin());
-            } else {
-                oldUser.setName(newUser.getName());
-            }
+            oldUser.setName(newUser.getName());
             oldUser.setBirthday(newUser.getBirthday());
             log.info("Пользователь {} c id {} успешно обновлен", oldUser.getLogin(), oldUser.getId());
             return oldUser;
@@ -61,6 +49,29 @@ public class InMemoryUserStorage implements UserStorage {
             throw new NotFoundException("пользователь с id " + id + " не найден");
         }
         return users.get(id);
+    }
+
+    @Override
+    public List<User> getUserFriends(Long id) {
+        List<User> friendsList = new ArrayList<>();
+        User user = getUserById(id);
+
+        for (Long friendId : user.getFriends()) {
+            User friend = getUserById(friendId);
+            friendsList.add(friend);
+        }
+        return friendsList;
+    }
+
+    @Override
+    public List<User> getCommonFriends(Long userId, Long otherId) {
+        User user = getUserById(userId);
+        User otherUser = getUserById(otherId);
+
+        return user.getFriends().stream()
+                .filter(otherUser.getFriends()::contains)
+                .map(this::getUserById)
+                .collect(Collectors.toList());
     }
 
     private long getNextUserId() {

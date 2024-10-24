@@ -1,21 +1,16 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
+
 import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-
-    private static final LocalDate MIN_RELEASE_DATA = LocalDate.of(1895, 12, 28);
     private final Map<Long, Film> films = new HashMap<>();
 
     @Override
@@ -25,7 +20,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film createFilm(Film film) {
-        validateFilm(film);
         film.setId(getNextFilmId());
         film.setLikes(new HashSet<>());
         films.put(film.getId(), film);
@@ -36,13 +30,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film newFilm) {
-        if (newFilm.getId() == null) {
-            log.error("Id должен быть указан");
-            throw new ValidationException("Id должен быть указан");
-        }
         if (films.containsKey(newFilm.getId())) {
             Film oldFilm = films.get(newFilm.getId());
-            validateFilm(newFilm);
             oldFilm.setName(newFilm.getName());
             oldFilm.setDescription(newFilm.getDescription());
             oldFilm.setDuration(newFilm.getDuration());
@@ -62,11 +51,13 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.get(id);
     }
 
-    public void validateFilm(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE_DATA)) {
-            log.error("Дата релиза не может быть раньше {} или пустой", MIN_RELEASE_DATA);
-            throw new ValidationException("Дата релиза не может быть раньше " + MIN_RELEASE_DATA + " или пустой");
-        }
+    @Override
+    public List<Film> getPopularFilms(Long count) {
+        return getFilms().stream()
+                .filter(film -> film.getLikes() != null)
+                .sorted((film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size()))
+                .limit(count)
+                .toList();
     }
 
     public long getNextFilmId() {
