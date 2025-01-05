@@ -15,4 +15,8 @@ public interface FilmStorage {
     public Film getFilmById(Long id);
 
     public List<Film> getPopularFilms(Long count);
+
+    public void addLike(Long filmId, Long userId);
+
+    public void deleteLike(Long filmId, Long userId);
 }

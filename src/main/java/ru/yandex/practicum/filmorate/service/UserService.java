@@ -41,6 +41,7 @@ public class UserService {
             newUser.setName(newUser.getLogin());
             log.info("Обновление. Пустое имя пользователя, использован Логин {}", newUser.getLogin());
         }
+        userStorage.getUserById(newUser.getId());
         return userStorage.updateUser(newUser);
     }
 
@@ -50,25 +51,23 @@ public class UserService {
     }
 
     public void addFriend(Long id, Long friendId) {
-        User user = userStorage.getUserById(id);
-        User friend = userStorage.getUserById(friendId);
-
-        user.getFriends().add(friendId);
-        friend.getFriends().add(id);
+        userStorage.getUserById(id);
+        userStorage.getUserById(friendId);
+        userStorage.addFriend(id, friendId);
         log.info("Пользователь с Id {} добавил в друзья пользователя с Id {}", id, friendId);
     }
 
     public void deleteFriend(Long userId, Long friendId) {
-        User user = userStorage.getUserById(userId);
-        User friends = userStorage.getUserById(friendId);
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
 
-        user.getFriends().remove(friendId);
-        friends.getFriends().remove(userId);
+        userStorage.deleteFriend(userId, friendId);
         log.info("Пользователь с Id {} удалил из друзей пользователя с Id {}", userId, friendId);
     }
 
     public List<User> getUserFriends(Long id) {
         log.info("Запрос на получение всех друзей пользователя с id {}", id);
+        userStorage.getUserById(id);
         return userStorage.getUserFriends(id);
     }
 

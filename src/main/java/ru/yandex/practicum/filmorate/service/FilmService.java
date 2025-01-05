@@ -6,12 +6,16 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+
 
 @Slf4j
 @Service
@@ -20,12 +24,15 @@ public class FilmService {
     private static final LocalDate MIN_RELEASE_DATA = LocalDate.of(1895, 12, 28);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
     public List<Film> getFilms() {
         return filmStorage.getFilms();
     }
 
     public Film createFilm(Film film) {
+        log.info("Запрос на добавления фильма");
         validateFilm(film);
         return filmStorage.createFilm(film);
     }
@@ -37,6 +44,7 @@ public class FilmService {
             throw new ValidationException("Id должен быть указан");
         }
         validateFilm(newFilm);
+        filmStorage.getFilmById(newFilm.getId());
         return filmStorage.updateFilm(newFilm);
     }
 
@@ -51,17 +59,17 @@ public class FilmService {
     }
 
     public void addLike(Long filmId, Long userId) {
-        Film film = getFilmById(filmId);
+        Film film = filmStorage.getFilmById(filmId);
         User user = userStorage.getUserById(userId);
-        film.getLikes().add(user.getId());
+        filmStorage.addLike(film.getId(), user.getId());
         log.info("Пользователь с id {} поставил лайк фильму с id {}", userId, filmId);
     }
 
     public void deleteLike(Long filmId, Long userId) {
-        Film film = getFilmById(filmId);
+        Film film = filmStorage.getFilmById(filmId);
         User user = userStorage.getUserById(userId);
         if (film.getLikes().contains(user.getId())) {
-            film.getLikes().remove(user.getId());
+            filmStorage.deleteLike(filmId, userId);
             log.info("Пользователь с id {} удалил лайк у фильма с id {}", userId, filmId);
         } else {
             log.error("Пользователь с id {} не ставил лайк фильму с id {}", userId, filmId);
@@ -73,6 +81,21 @@ public class FilmService {
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE_DATA)) {
             log.error("Дата релиза не может быть раньше {} или пустой", MIN_RELEASE_DATA);
             throw new ValidationException("Дата релиза не может быть раньше " + MIN_RELEASE_DATA + " или пустой");
+        }
+
+        if (!mpaStorage.checkValid(film.getMpa().getId())) {
+            log.error("Несуществующий id рейтинга {}", film.getMpa().getId());
+            throw new ValidationException("Несуществующий id рейтинга " + film.getMpa().getId());
+        }
+
+        List<Genre> genres = genreStorage.getAllGenre();
+        List<Long> genresId = genres.stream().map(Genre::getId).toList();
+        List<Long> filmGenreId = film.getGenres().stream().map(Genre::getId).toList();
+        for (Long genreId : filmGenreId) {
+            if (!genresId.contains(genreId)) {
+                log.error("Несуществующий id жанра {}", genreId);
+                throw new ValidationException("Несуществующий id жанра " + genreId);
+            }
         }
     }
 }
