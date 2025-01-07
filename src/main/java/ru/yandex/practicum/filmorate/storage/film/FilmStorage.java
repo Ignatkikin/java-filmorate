@@ -22,7 +22,7 @@ public interface FilmStorage {
 
     public Optional<Film> getFilmById(Long id);
 
-    public Set<Long> FilmLikesId(Long id);
+    public Set<Long> filmLikesId(Long id);
 
     public boolean checkIfFilmExists(Long id);
 
