@@ -5,11 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.MpaService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.*;
@@ -29,29 +26,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String INSERT_GENRE_FILM_QUERY = "INSERT INTO genre_film (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_GENRE_FILM_QUERY = "DELETE FROM genre_film WHERE film_id = ?";
     private static final String GET_LIKE_FILM_QUERY = "SELECT user_id FROM likes WHERE film_id = ?";
+    private static final String GET_POPULAR_FILMS_QUERY = "SELECT f.* FROM films AS f " +
+            "LEFT JOIN likes l ON f.film_id = l.film_id " +
+            "GROUP BY f.film_id " +
+            "ORDER BY COUNT(l.user_id) DESC LIMIT ?";
 
-
-    private final MpaService mpaService;
-    private final GenreService genreService;
-
-
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper, MpaService mpaService,
-                          GenreService genreService) {
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
-        this.mpaService = mpaService;
-        this.genreService = genreService;
     }
 
     @Override
     public List<Film> getFilms() {
-        List<Film> films = findMany(GET_ALL_FILMS_QUERY);
-        for (Film film : films) {
-            film.setGenres(genreService.getFilmGenres(film.getId()));
-            film.setMpa(mpaService.getMpaById(film.getMpa().getId()));
-            Set<Long> likesFilm = new HashSet<>(findManyId(GET_LIKE_FILM_QUERY, film.getId()));
-            film.setLikes(likesFilm);
-        }
-        return films;
+        return findMany(GET_ALL_FILMS_QUERY);
     }
 
     @Override
@@ -97,24 +83,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Film getFilmById(Long id) {
-        Optional<Film> filmOptional = findOne(GET_FILM_BY_ID_QUERY, id);
-        Film film = filmOptional.orElseThrow(() -> new NotFoundException("фильм с id " + id + " не найден"));
-        film.setGenres(genreService.getFilmGenres(film.getId()));
-        film.setMpa(mpaService.getMpaById(film.getMpa().getId()));
-        Set<Long> likesFilm = new HashSet<>(findManyId(GET_LIKE_FILM_QUERY, id));
-        film.setLikes(likesFilm);
-        return film;
+    public Set<Long> FilmLikesId(Long id) {
+        return new HashSet<>(findManyId(GET_LIKE_FILM_QUERY, id));
+    }
+
+    @Override
+    public Optional<Film> getFilmById(Long id) {
+        return findOne(GET_FILM_BY_ID_QUERY, id);
     }
 
     @Override
     public List<Film> getPopularFilms(Long count) {
-        List<Film> popularFilms = getFilms().stream()
-                .filter(film -> film.getLikes() != null)
-                .sorted((film1, film2) -> film2.getLikes().size() - film1.getLikes().size())
-                .limit(count == null ? 10 : count)
-                .toList();
-        return popularFilms;
+        return findMany(GET_POPULAR_FILMS_QUERY, count);
     }
 
     @Override
@@ -125,6 +105,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public void deleteLike(Long filmId, Long userId) {
         jdbc.update(DELETE_LIKE_QUERY, filmId, userId);
+    }
+
+    @Override
+    public boolean checkIfFilmExists(Long id) {
+        Optional<Film> filmOptional = findOne(GET_FILM_BY_ID_QUERY, id);
+        return filmOptional.isPresent();
     }
 
 }

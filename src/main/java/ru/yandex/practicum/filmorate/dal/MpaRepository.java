@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dal;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 
@@ -21,10 +20,8 @@ public class MpaRepository extends BaseRepository<Mpa> implements MpaStorage {
     }
 
     @Override
-    public Mpa getMpaById(Long id) {
-        Optional<Mpa> mpaOptional = findOne(GET_MPA_BY_ID_QUERY, id);
-        Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("рейтинг с id " + id + " не найден"));
-        return mpa;
+    public Optional<Mpa> getMpaById(Long id) {
+        return findOne(GET_MPA_BY_ID_QUERY, id);
     }
 
     @Override

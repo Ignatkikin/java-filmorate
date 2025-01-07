@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dal;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
@@ -25,10 +24,8 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     }
 
     @Override
-    public Genre getGenreById(Long id) {
-        Optional<Genre> genreOptional = findOne(GET_GENRE_BY_ID_QUERY, id);
-        Genre genre = genreOptional.orElseThrow(() -> new NotFoundException("жанр с id " + id + " не найден"));
-        return genre;
+    public Optional<Genre> getGenreById(Long id) {
+        return findOne(GET_GENRE_BY_ID_QUERY, id);
     }
 
     @Override

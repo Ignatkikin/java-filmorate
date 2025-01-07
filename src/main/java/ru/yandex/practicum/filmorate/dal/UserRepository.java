@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -41,11 +40,7 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public List<User> getUsers() {
-        List<User> users = findMany(GET_ALL_USERS_QUERY);
-        for (User user : users) {
-            user.setFriends(getUserFriendsId(user.getId()));
-        }
-        return users;
+        return findMany(GET_ALL_USERS_QUERY);
     }
 
     @Override
@@ -73,12 +68,10 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
     }
 
     @Override
-    public User getUserById(Long id) {
-        Optional<User> userOptional = findOne(GET_USER_BY_ID_QUERY, id);
-        User user = userOptional.orElseThrow(() -> new NotFoundException("пользователь с id " + id + " не найден"));
-        user.setFriends(getUserFriendsId(user.getId()));
-        return user;
+    public Optional<User> getUserById(Long id) {
+        return findOne(GET_USER_BY_ID_QUERY, id);
     }
+
 
     @Override
     public List<User> getUserFriends(Long id) {
@@ -90,6 +83,7 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
         return findMany(GET_COMMON_FRIENDS_QUERY, userId, otherId);
     }
 
+    @Override
     public Set<Long> getUserFriendsId(Long id) {
         return new HashSet<>(findManyId(GET_ID_FRIENDS_QUERY, id));
     }
@@ -102,5 +96,11 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
     @Override
     public void deleteFriend(Long userId, Long friendsId) {
         jdbc.update(DELETE_FRIEND_QUERY, userId, friendsId);
+    }
+
+    @Override
+    public boolean checkIfUserExists(Long id) {
+        Optional<User> userOptional = findOne(GET_USER_BY_ID_QUERY, id);
+        return userOptional.isPresent();
     }
 }
