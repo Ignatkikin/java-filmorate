@@ -37,7 +37,7 @@ public class FilmService {
             Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
                     " не найден"));
             film.setMpa(mpa);
-            film.setLikes(filmStorage.FilmLikesId(film.getId()));
+            film.setLikes(filmStorage.filmLikesId(film.getId()));
         }
         return films;
     }
@@ -70,7 +70,7 @@ public class FilmService {
         Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
                 " не найден"));
         film.setMpa(mpa);
-        film.setLikes(filmStorage.FilmLikesId(id));
+        film.setLikes(filmStorage.filmLikesId(id));
         return film;
     }
 
@@ -84,7 +84,7 @@ public class FilmService {
             Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
                     " не найден"));
             film.setMpa(mpa);
-            film.setLikes(filmStorage.FilmLikesId(film.getId()));
+            film.setLikes(filmStorage.filmLikesId(film.getId()));
         }
         return films;
     }

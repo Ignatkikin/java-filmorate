@@ -83,7 +83,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Set<Long> FilmLikesId(Long id) {
+    public Set<Long> filmLikesId(Long id) {
         return new HashSet<>(findManyId(GET_LIKE_FILM_QUERY, id));
     }
 
