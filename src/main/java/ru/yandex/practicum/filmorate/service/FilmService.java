@@ -33,11 +33,10 @@ public class FilmService {
         List<Film> films = filmStorage.getFilms();
         for (Film film : films) {
             film.setGenres(genreStorage.getFilmGenres(film.getId()));
-            Optional<Mpa> mpaOptional = mpaStorage.getMpaById(film.getMpa().getId());
-            Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
-                    " не найден"));
+            Mpa mpa = mpaStorage.getMpaById(film.getMpa().getId()).orElseThrow(() -> new NotFoundException(
+                    "Рейтинг с id " + film.getMpa().getId() + " не найден"));
             film.setMpa(mpa);
-            film.setLikes(filmStorage.filmLikesId(film.getId()));
+            film.setLikes(filmStorage.getFilmLikesId(film.getId()));
         }
         return films;
     }
@@ -66,11 +65,10 @@ public class FilmService {
         Optional<Film> filmOptional = filmStorage.getFilmById(id);
         Film film = filmOptional.orElseThrow(() -> new NotFoundException("фильм с id " + id + " не найден"));
         film.setGenres(genreStorage.getFilmGenres(film.getId()));
-        Optional<Mpa> mpaOptional = mpaStorage.getMpaById(film.getMpa().getId());
-        Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
-                " не найден"));
+        Mpa mpa = mpaStorage.getMpaById(film.getMpa().getId()).orElseThrow(() -> new NotFoundException(
+                "Рейтинг с id " + film.getMpa().getId() + " не найден"));
         film.setMpa(mpa);
-        film.setLikes(filmStorage.filmLikesId(id));
+        film.setLikes(filmStorage.getFilmLikesId(id));
         return film;
     }
 
@@ -80,11 +78,10 @@ public class FilmService {
         List<Film> films = filmStorage.getPopularFilms(count);
         for (Film film : films) {
             film.setGenres(genreStorage.getFilmGenres(film.getId()));
-            Optional<Mpa> mpaOptional = mpaStorage.getMpaById(film.getMpa().getId());
-            Mpa mpa = mpaOptional.orElseThrow(() -> new NotFoundException("Рейтинг с id " + film.getMpa().getId() +
-                    " не найден"));
+            Mpa mpa = mpaStorage.getMpaById(film.getMpa().getId()).orElseThrow(() -> new NotFoundException(
+                    "Рейтинг с id " + film.getMpa().getId() + " не найден"));
             film.setMpa(mpa);
-            film.setLikes(filmStorage.filmLikesId(film.getId()));
+            film.setLikes(filmStorage.getFilmLikesId(film.getId()));
         }
         return films;
     }
